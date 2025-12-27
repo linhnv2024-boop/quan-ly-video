@@ -13,9 +13,19 @@ KEY_FILE = "key.json"
 
 # --- 1. KẾT NỐI DATABASE ---
 @st.cache_resource
+@st.cache_resource
 def init_connection():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(KEY_FILE, scope)
+    
+    # Kịch bản 1: Chạy trên Streamlit Cloud (Dùng Secrets)
+    if "gcp_service_account" in st.secrets:
+        creds_dict = st.secrets["gcp_service_account"]
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    
+    # Kịch bản 2: Chạy trên máy tính cá nhân (Dùng file key.json)
+    else:
+        creds = ServiceAccountCredentials.from_json_keyfile_name("key.json", scope)
+        
     client = gspread.authorize(creds)
     return client
 
@@ -210,4 +220,5 @@ def main():
         with tab2: ui_dashboard_stats(user)
 
 if __name__ == "__main__":
+
     main()
