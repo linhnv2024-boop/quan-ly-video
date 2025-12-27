@@ -13,7 +13,6 @@ KEY_FILE = "key.json"
 
 # --- 1. KẾT NỐI DATABASE ---
 @st.cache_resource
-@st.cache_resource
 def init_connection():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     
@@ -222,3 +221,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
