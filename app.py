@@ -7,21 +7,21 @@ import uuid
 import time
 import altair as alt
 
-# --- ĐOẠN CODE GIẤU THANH TOOLBAR GITHUB ---
+# --- ĐOẠN CODE GIẤU THANH TOOLBAR (ĐÃ SỬA LỖI) ---
 st.markdown(
     """
     <style>
-    /* Giấu nút Fork, GitHub và Menu Deploy */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
     .stAppDeployButton {display:none;}
-    [data-testid="stStatusWidget"] {display:none;}
     </style>
     """,
-    unsafe_allow_status=True
+    unsafe_allow_html=True
 )
 
+# --- CẤU HÌNH HỆ THỐNG ---
+SHEET_NAME = "QuanLyVideo_App"
 # --- CẤU HÌNH HỆ THỐNG ---
 SHEET_NAME = "QuanLyVideo_App"
 KEY_FILE = "key.json"
@@ -236,4 +236,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
