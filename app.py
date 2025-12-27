@@ -17,14 +17,21 @@ def init_connection():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     
     # Kịch bản 1: Chạy trên Streamlit Cloud (Dùng Secrets)
+    # Lưu ý: Trong mục Secrets trên web phải có header là [gcp_service_account]
     if "gcp_service_account" in st.secrets:
         creds_dict = st.secrets["gcp_service_account"]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     
     # Kịch bản 2: Chạy trên máy tính cá nhân (Dùng file key.json)
     else:
-        creds = ServiceAccountCredentials.from_json_keyfile_name("key.json", scope)
-        
+        # Nếu không tìm thấy Secrets, thử tìm file key.json
+        try:
+            creds = ServiceAccountCredentials.from_json_keyfile_name("key.json", scope)
+        except:
+            # Nếu cả 2 đều không có thì báo lỗi rõ ràng
+            st.error("⚠️ Lỗi kết nối: Không tìm thấy 'Secrets' trên Cloud hoặc file 'key.json' trên máy.")
+            st.stop()
+            
     client = gspread.authorize(creds)
     return client
 
@@ -47,7 +54,7 @@ def login_system(user_id, pin):
             return user.iloc[0].to_dict()
         return None
     except Exception as e:
-        st.error(f"Lỗi kết nối: {e}")
+        st.error(f"Lỗi kết nối Sheet CONFIG_USER: {e}")
         return None
 
 def submit_video(user_info, product, title, link):
@@ -69,13 +76,12 @@ def update_submission(bai_id, new_link):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         # Cập nhật: Cột 2 (Time), Cột 6 (Link), Cột 7 (Status)
-        # (Vì cột Ten_Video chen vào vị trí số 5, nên Link bị đẩy sang 6)
         ws.update_cell(row_idx, 2, timestamp)
         ws.update_cell(row_idx, 6, new_link)
         ws.update_cell(row_idx, 7, "Cho_Duyet")
         return True
     except Exception as e:
-        st.error(f"Lỗi: {e}")
+        st.error(f"Lỗi khi cập nhật: {e}")
         return False
 
 # --- 3. FRONTEND UI ---
@@ -127,10 +133,7 @@ def ui_submission_page(user_info):
     product_list = [p.strip() for p in str(user_info['DS_San_Pham']).split(',')]
     
     with st.form("form_nop_bai"):
-        # Hàng 1: Chọn sản phẩm
         san_pham = st.selectbox("Sản Phẩm", product_list)
-        
-        # Hàng 2: Tên Video & Link (Chia cột 50-50)
         c1, c2 = st.columns(2)
         with c1:
             ten_video = st.text_input("Tiêu đề Video (Caption)")
@@ -160,8 +163,6 @@ def ui_submission_page(user_info):
             status = str(row['Trang_Thai']).strip()
             note = str(row['Admin_Note']).strip()
             bai_id = row['ID_Bai']
-            
-            # Hiển thị Tiêu đề video trong thanh tiêu đề cho dễ nhìn
             title_display = row['Ten_Video'] if row['Ten_Video'] else "Video không tên"
             
             if status == "Da_Duyet":
@@ -219,6 +220,4 @@ def main():
         with tab2: ui_dashboard_stats(user)
 
 if __name__ == "__main__":
-
     main()
-
